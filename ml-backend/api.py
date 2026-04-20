@@ -45,16 +45,18 @@ def process_telemetry(payload: TelemetryPayload):
     w1 = 1.0 # Hydration Weight
     w2 = 2.0 # UV Penalty Weight
     
-    calculated_score = (w1 * payload.raw_hydration) - (w2 * payload.raw_uv)
+    calculated_score = payload.raw_hydration * (1 - payload.raw_uv / 10)
     
     # Keep score between 0 and 100
     calculated_score = max(0.0, min(100.0, calculated_score)) 
     
     # 2. State Classification Logic (Moved from Edge MCU to Backend)
-    if payload.raw_uv >= 5.0:
+    if payload.raw_uv > 6:
         state = "UV-Stressed"
-    elif payload.raw_hydration <= 40.0:
+    elif payload.raw_hydration < 40:
         state = "Dehydrated"
+    elif payload.raw_uv > 3 and payload.raw_hydration < 50:
+        state = "At-Risk"
     else:
         state = "Optimal"
     

@@ -1,9 +1,10 @@
 import serial
-import requests
 import time
 import json
 import argparse
 import random
+import urllib.request
+import urllib.error
 
 # Default API URL
 API_URL = "http://localhost:8000/api/telemetry"
@@ -37,8 +38,7 @@ def start_bridge(port, baudrate, use_mock=False):
                 line = generate_dummy_payload()
                 time.sleep(5) # Emit new data every 5 seconds
             else:
-                if ser and ser.in_waiting > 0:
-                    line = ser.readline().decode('utf-8').strip()
+                line = ser.readline().decode('utf-8').strip()
             
             if line:
                 # Expected format from STM32: {"h": 45.2, "u": 5.1}
@@ -46,15 +46,26 @@ def start_bridge(port, baudrate, use_mock=False):
                     try:
                         data = json.loads(line)
                         payload = {
-                            "raw_hydration": data.get("h", 0.0),
-                            "raw_uv": data.get("u", 0.0)
-                        }
+                            "raw_hydration": data.get("h", 0.0) * 100,   # convert to %
+                            "raw_uv": data.get("u", 0.0) * 10            # scale to UV index
+                        }   
                         
-                        response = requests.post(API_URL, json=payload)
-                        if response.status_code == 200:
-                            print(f"[Success] State Detected: {response.json().get('state_detected')} | Score: {response.json().get('skin_score')}")
-                        else:
-                            print(f"[Error] Backend returned {response.status_code}: {response.text}")
+                        req = urllib.request.Request(
+                            API_URL,
+                            data=json.dumps(payload).encode("utf-8"),
+                            headers={"Content-Type": "application/json"},
+                            method="POST"
+                        )
+                        try:
+                            with urllib.request.urlopen(req, timeout=10) as response:
+                                response_body = response.read().decode("utf-8")
+                                response_json = json.loads(response_body) if response_body else {}
+                                print(f"[Success] State Detected: {response_json.get('state_detected')} | Score: {response_json.get('skin_score')}")
+                        except urllib.error.HTTPError as e:
+                            error_body = e.read().decode("utf-8") if e.fp else str(e)
+                            print(f"[Error] Backend returned {e.code}: {error_body}")
+                        except urllib.error.URLError as e:
+                            print(f"[Error] Failed to reach backend: {e}")
                             
                     except json.JSONDecodeError:
                         print(f"[Parse Error] Raw line not valid JSON: {line}")
