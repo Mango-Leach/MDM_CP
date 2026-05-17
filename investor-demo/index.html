@@ -3,85 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LSH-UV Node | Investor Dashboard</title>
-    <!-- Google Fonts for Modern Typography -->
+    <title>LSH-UV Node | Platform</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
+ 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="background-mesh">
+    
+    <div class="background-mesh" id="bg-mesh">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="particles" id="particles"></div>
     </div>
 
-    <header class="glass-header">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
         <div class="logo">
             <i class="fa-solid fa-droplet"></i>
-            <h1>LSH-UV <span>NODE</span></h1>
+            <h1>LSH-UV</h1>
         </div>
-        <button id="sync-btn" class="sync-button">
-            <i class="fa-solid fa-satellite-dish"></i> Simulate Hardware Sync
-        </button>
-    </header>
+        
+        <ul class="nav-links">
+            <li>
+                <a href="#dashboard" class="nav-item active" data-view="dashboard">
+                    <i class="fa-solid fa-border-all"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="#history" class="nav-item" data-view="history">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>History & Trends</span>
+                </a>
+            </li>
+            <li>
+                <a href="#profile" class="nav-item" data-view="profile">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                    <span>Profile</span>
+                </a>
+            </li>
+        </ul>
 
-    <main class="dashboard-grid">
-        <!-- Telemetry Card -->
-        <section class="glass-card telemetry-card">
-            <h2>Live Telemetry</h2>
-            <div class="metrics">
-                <div class="metric">
-                    <div class="metric-icon blue"><i class="fa-solid fa-water"></i></div>
-                    <div class="metric-info">
-                        <span class="label">Hydration Level</span>
-                        <span class="value" id="val-hydration">-- %</span>
+        <div class="sidebar-footer">
+            <button id="sync-btn" class="sync-button">
+                <i class="fa-solid fa-satellite-dish"></i> <span>Hardware Sync</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="content-wrapper">
+        
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view active">
+            <header class="view-header">
+                <h2>Overview</h2>
+                <p>Real-time node status and active interventions</p>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Telemetry Card -->
+                <div class="glass-card telemetry-card">
+                    <h3>Live Telemetry</h3>
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-icon blue"><i class="fa-solid fa-water"></i></div>
+                            <div class="metric-info">
+                                <span class="label">Hydration Level</span>
+                                <span class="value" id="val-hydration">-- %</span>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-icon orange"><i class="fa-solid fa-sun"></i></div>
+                            <div class="metric-info">
+                                <span class="label">UV Index</span>
+                                <span class="value" id="val-uv">-- UVI</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="score-container">
+                        <svg class="progress-ring" width="160" height="160">
+                            <circle class="progress-ring__circle_bg" stroke="rgba(255,255,255,0.05)" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
+                            <circle id="score-ring" class="progress-ring__circle" stroke="#00f3ff" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
+                        </svg>
+                        <div class="score-text">
+                            <h3 id="val-score">0</h3>
+                            <p>Skin Score</p>
+                        </div>
+                    </div>
+                    <div class="status-indicator">
+                        State: <strong id="val-state" class="state-bad">Awaiting Data</strong>
                     </div>
                 </div>
-                <div class="metric">
-                    <div class="metric-icon orange"><i class="fa-solid fa-sun"></i></div>
-                    <div class="metric-info">
-                        <span class="label">UV Index</span>
-                        <span class="value" id="val-uv">-- UVI</span>
+
+                <!-- Recommender Card -->
+                <div class="glass-card predictions-card">
+                    <h3>ML Interventions</h3>
+                    <p class="subtitle">Apriori Collaborative Filtering Engine</p>
+                    
+                    <div id="loading-spinner" class="hidden">
+                        <div class="spinner"></div>
+                        <p>Synthesizing Biomarkers...</p>
+                    </div>
+
+                    <div id="product-results" class="product-grid">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <p>Sync hardware to generate real-time product interventions.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="score-container">
-                <svg class="progress-ring" width="160" height="160">
-                    <circle class="progress-ring__circle_bg" stroke="rgba(255,255,255,0.1)" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
-                    <circle id="score-ring" class="progress-ring__circle" stroke="#00f3ff" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
-                </svg>
-                <div class="score-text">
-                    <h3 id="val-score">0</h3>
-                    <p>Skin Score</p>
+
+                <!-- UV Forecast Panel (Moved to dashboard) -->
+                <div class="glass-card uv-card">
+                    <h3><i class="fa-solid fa-cloud-sun"></i> UV Forecast (12h)</h3>
+                    <div id="uv-warning-container" class="uv-warning"></div>
+                    <div class="chart-container uv-chart-wrapper">
+                        <canvas id="uvForecastChart"></canvas>
+                    </div>
                 </div>
-            </div>
-            <div class="status-indicator">
-                Detected State: <strong id="val-state" class="state-bad">Awaiting Data</strong>
             </div>
         </section>
 
-        <!-- Recommender Card -->
-        <section class="glass-card predictions-card">
-            <h2>ML Interventions</h2>
-            <p class="subtitle">Apriori Collaborative Filtering Engine</p>
-            
-            <div id="loading-spinner" class="hidden">
-                <div class="spinner"></div>
-                <p>Synthesizing Biomarkers...</p>
-            </div>
+        <!-- HISTORY VIEW -->
+        <section id="view-history" class="view">
+            <header class="view-header">
+                <h2>History & Trends</h2>
+                <p>Analyze long-term telemetry data and insights</p>
+            </header>
 
-            <div id="product-results" class="product-grid">
-                <!-- Products dynamically injected here -->
-                <div class="empty-state">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <p>Sync hardware to generate real-time product interventions.</p>
+            <div class="history-grid">
+                <!-- Trend Graphs Panel -->
+                <div class="glass-card trends-card">
+                    <h3><i class="fa-solid fa-chart-line"></i> 7-Day Performance</h3>
+                    <div class="chart-container large-chart">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Insights Panel -->
+                <div class="glass-card insights-card">
+                    <h3><i class="fa-solid fa-lightbulb"></i> Personalized Insights</h3>
+                    <div id="insights-container" class="insights-list">
+                        <div class="insight-item info">
+                            <i class="fa-solid fa-circle-info"></i> Sync hardware to generate insights.
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
+
+        <!-- PROFILE VIEW -->
+        <section id="view-profile" class="view">
+            <header class="view-header">
+                <h2>Skin Profile Configuration</h2>
+                <p>Fine-tune ML models and parameters</p>
+            </header>
+
+            <div class="profile-grid">
+                <div class="glass-card form-card">
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label>Skin Type</label>
+                            <select id="profile-type">
+                                <option value="Oily">Oily</option>
+                                <option value="Dry">Dry</option>
+                                <option value="Combination">Combination</option>
+                                <option value="Normal">Normal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="profile-age" placeholder="e.g. 28">
+                        </div>
+                        <div class="form-group">
+                            <label>Sensitivities (Comma separated)</label>
+                            <input type="text" id="profile-sensitivities" placeholder="e.g. Sun, Wind">
+                        </div>
+                        <div class="form-group">
+                            <label>Allergy Blacklist (Comma separated)</label>
+                            <input type="text" id="profile-allergies" placeholder="e.g. Fragrance, Alcohol">
+                        </div>
+                        <button type="submit" class="save-btn">Save Configuration</button>
+                    </form>
+                    <div id="profile-save-status" class="hidden status-msg">Profile Saved Successfully!</div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="charts.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

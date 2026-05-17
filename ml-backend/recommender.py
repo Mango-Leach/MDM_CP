@@ -20,11 +20,21 @@ class SkinRecommender:
         except Exception as e:
             print(f"Error loading models: {e}")
 
-    def get_recommendation(self, skin_state: str) -> list[RecommendedProduct]:
+    def get_recommendation(self, skin_state: str, profile: dict = None) -> list[RecommendedProduct]:
         """
         Maps the skin state to ingredients using Apriori rules, 
         then finds products matching those ingredients.
+        Filters out products containing any blacklisted allergy ingredients,
+        and boosts confidence scores based on skin type and sensitivities.
         """
+        profile = profile or {}
+        blacklist = profile.get("allergy_ingredients", [])
+        skin_type = (profile.get("skin_type") or "").lower()
+        sensitivities = [s.lower().strip() for s in profile.get("sensitivities", []) if s]
+
+        # Normalize blacklist to lowercase for case-insensitive matching
+        blacklist_lower = [b.lower().strip() for b in blacklist if b]
+
         if self.rules is None or self.catalog is None:
             # Fallback mock recommendations if not trained
             return [RecommendedProduct(
@@ -54,6 +64,12 @@ class SkinRecommender:
         # Find products in catalog that have these ingredients
         best_matches = []
         for idx, row in self.catalog.iterrows():
+            # Check allergy blacklist — skip product if it contains a blacklisted ingredient
+            if blacklist_lower and 'ingredients' in row.index:
+                product_ingredients = str(row.get('ingredients', '')).lower()
+                if any(allergen in product_ingredients for allergen in blacklist_lower):
+                    continue
+
             match_score = 0
             for ing in recommended_ingredients:
                 if row[ing] == 1:
@@ -61,6 +77,22 @@ class SkinRecommender:
             
             if match_score > 0:
                 confidence = match_score / len(recommended_ingredients)
+                
+                # --- Profile Boosting Logic ---
+                text_to_search = f"{row.get('product_name', '')} {row.get('ingredients', '')}".lower()
+                
+                # 1. Boost if product matches skin type
+                if skin_type and skin_type in text_to_search:
+                    confidence += 0.15
+                    
+                # 2. Boost based on sensitivities
+                if 'sun' in sensitivities and ('spf' in text_to_search or 'sunscreen' in text_to_search):
+                    confidence += 0.20
+                if 'wind' in sensitivities and ('ceramide' in text_to_search or 'barrier' in text_to_search):
+                    confidence += 0.15
+                    
+                confidence = min(1.0, confidence) # Cap at 100%
+                
                 best_matches.append(RecommendedProduct(
                     product_name=row['product_name'],
                     brand=row['brand'],
