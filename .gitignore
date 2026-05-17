@@ -14,3 +14,20 @@ ml-backend/models/*.pkl
 # OS Specific
 .DS_Store
 Thumbs.db
+
+# STM32CubeIDE Build Folders
+firmware/**/Debug/
+firmware/**/Release/
+
+# Object files and executables
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+*.su
+
+# IDE specific settings you don't want to track
+*.launch
+**/.metadata/
