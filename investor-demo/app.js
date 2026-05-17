@@ -37,20 +37,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (lastRenderedScore === data.skin_score) return;
                 lastRenderedScore = data.skin_score;
 
-                // Animate metrics rolling up
-                animateValue(valHydration, 0, data.hydration_percentage, 1000, '%');
-                animateValue(valUv, 0, data.uv_index, 1000, ' UVI', true);
-                animateValue(valScore, 0, data.skin_score, 1500, '');
+                // Animate metrics rolling up from previous values
+                animateValue(valHydration, parseFloat(valHydration.innerText) || 0, data.hydration_percentage, 500, '%');
+                animateValue(valUv, parseFloat(valUv.innerText) || 0, data.uv_index, 500, ' UVI', true);
+                animateValue(valScore, parseFloat(valScore.innerText) || 0, data.skin_score, 500, '');
                 
-                setTimeout(() => {
-                    setProgress(data.skin_score);
-                    valState.textContent = data.state_detected;
-                    
-                    // Color logic
-                    if(data.state_detected === "Optimal") valState.className = "state-good";
-                    else if(data.state_detected === "UV-Stressed") valState.className = "state-warn";
-                    else valState.className = "state-bad";
-                }, 500);
+                setProgress(data.skin_score);
+                valState.textContent = data.state_detected;
+                
+                // Color logic
+                if(data.state_detected === "Optimal") valState.className = "state-good";
+                else if(data.state_detected === "UV-Stressed") valState.className = "state-warn";
+                else valState.className = "state-bad";
 
                 renderProducts(data.recommendations);
             }
@@ -74,9 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsContainer.innerHTML = '';
             loadingSpinner.classList.remove('hidden');
             
-            // Start Polling every 2 seconds
+            // Start Polling every 1 second to match hardware rate
             pollLatestData();
-            pollingInterval = setInterval(pollLatestData, 2000);
+            pollingInterval = setInterval(pollLatestData, 1000);
         }
     }
 
